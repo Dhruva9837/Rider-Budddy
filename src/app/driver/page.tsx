@@ -176,7 +176,7 @@ export default function DriverDashboard() {
                   <select
                     value={vehicle.vehicle_type}
                     onChange={e => setVehicle({ ...vehicle, vehicle_type: e.target.value })}
-                    className="w-full px-5 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 outline-none font-bold text-textPrimary text-sm appearance-none cursor-pointer uppercase tracking-widest transition-all"
+                    className="w-full px-5 py-5 bg-gray-400 rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 outline-none font-bold text-textPrimary text-sm appearance-none cursor-pointer uppercase tracking-widest transition-all"
                   >
                     <option value="">Select type...</option>
                     <option value="bike">Bike</option>
