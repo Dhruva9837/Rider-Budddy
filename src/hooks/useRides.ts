@@ -107,7 +107,9 @@ export function useRides() {
         .from('passenger_requests')
         .select(`
           *,
-          passenger:profiles!passenger_id(full_name, avatar_url)
+          passenger:profiles!passenger_id(full_name, avatar_url),
+          pickup_landmark:landmarks!pickup_landmark_id(name),
+          destination_landmark:landmarks!destination_landmark_id(name)
         `)
         .eq('status', 'pending')
         .order('departure_time', { ascending: true });
