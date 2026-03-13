@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Link from 'next/link';
 import { MapPin, Users, IndianRupee, Navigation, Clock, Info, Bike, Crosshair } from 'lucide-react';
+import MapView from '@/components/maps/MapView';
 
 const CAMPUS_LANDMARKS = [
   'Main Gate', 'Hostel Block A', 'Hostel Block B', 'Library', 
@@ -202,6 +203,20 @@ export default function RequestRide() {
                 </div>
               )}
             </div>
+
+            {/* Live Route Map Preview */}
+            {(pickupSearch || destSearch) && (
+              <div className="pt-4 border-t border-divider/50">
+                <p className="text-[9px] font-black text-textSecondary uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-info animate-pulse" /> Live route preview
+                </p>
+                <MapView 
+                  startLocation={pickupSearch || 'Pickup point'} 
+                  destination={destSearch || 'Destination'} 
+                  className="h-48 rounded-2xl"
+                />
+              </div>
+            )}
           </div>
 
           {/* Details Section */}

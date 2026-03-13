@@ -13,14 +13,23 @@ export function useRides() {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'rides'
         },
         (payload) => {
-          console.log('Real-time update received:', payload);
-          // Invalidate rides query to fetch fresh data with relations
           queryClient.invalidateQueries({ queryKey: ['rides'] });
+          queryClient.invalidateQueries({ queryKey: ['passenger_requests'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'passenger_requests'
+        },
+        () => {
           queryClient.invalidateQueries({ queryKey: ['passenger_requests'] });
         }
       )
