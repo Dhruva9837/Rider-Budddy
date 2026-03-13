@@ -154,8 +154,8 @@ export function useRides() {
   const updateRequestStatusMutation = useMutation({
     mutationFn: async ({ requestId, status }: { requestId: string; status: string }) => {
       const { data, error } = await supabase
-        .from('ride_requests')
-        .update({ status })
+        .from('ride_bookings')
+        .update({ booking_status: status })
         .eq('id', requestId)
         .select()
         .single();

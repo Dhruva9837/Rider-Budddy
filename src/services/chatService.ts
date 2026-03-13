@@ -7,7 +7,7 @@ export interface Message {
   message: string;
   created_at: string;
   sender?: {
-    name: string;
+    full_name: string;
     avatar_url: string | null;
   };
 }
@@ -16,7 +16,7 @@ export const chatService = {
   async getMessages(rideId: string) {
     const { data, error } = await supabase
       .from('messages')
-      .select('*, sender:profiles(name, avatar_url)')
+      .select('*, sender:profiles(full_name, avatar_url)')
       .eq('ride_id', rideId)
       .order('created_at', { ascending: true });
     
@@ -54,7 +54,7 @@ export const chatService = {
         // Fetch sender info separately or use payload if sufficient
         const { data: messageWithSender, error } = await supabase
           .from('messages')
-          .select('*, sender:profiles(name, avatar_url)')
+          .select('*, sender:profiles(full_name, avatar_url)')
           .eq('id', payload.new.id)
           .single();
         

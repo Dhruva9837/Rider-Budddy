@@ -26,15 +26,15 @@ interface RideDetail {
   vehicle_type: string;
   status: string;
   driver_id: string;
-  driver: { name: string; avatar_url?: string };
+  driver: { full_name: string; avatar_url?: string };
   trust_score?: number;
   efficiency_score?: number;
 }
 
-interface RideRequest {
+interface RideBooking {
   id: string;
-  status: string;
-  passenger: { name: string; avatar_url?: string };
+  booking_status: string;
+  rider: { full_name: string; avatar_url?: string };
 }
 
 export default function RideDetailsPage() {
@@ -43,7 +43,7 @@ export default function RideDetailsPage() {
   const { requestRide, isRequesting, updateRequestStatus, submitRating } = useRides();
   const router = useRouter();
   const [ride, setRide] = useState<RideDetail | null>(null);
-  const [requests, setRequests] = useState<RideRequest[]>([]);
+  const [requests, setRequests] = useState<RideBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasRequested, setHasRequested] = useState(false);
   const [requestStatus, setRequestStatus] = useState<string>('');
@@ -56,7 +56,7 @@ export default function RideDetailsPage() {
     async function fetchRide() {
       const { data, error } = await supabase
         .from('rides')
-        .select('*, driver:profiles(name, avatar_url)')
+        .select('*, driver:profiles(full_name, avatar_url)')
         .eq('id', id)
         .single();
 
@@ -67,14 +67,14 @@ export default function RideDetailsPage() {
       // Check if user already requested
       if (user) {
         const { data: existingReq } = await supabase
-          .from('ride_requests')
-          .select('id, status')
+          .from('ride_bookings')
+          .select('id, booking_status')
           .eq('ride_id', id)
-          .eq('passenger_id', user.id)
+          .eq('rider_id', user.id)
           .maybeSingle();
         if (existingReq) {
           setHasRequested(true);
-          setRequestStatus(existingReq.status);
+          setRequestStatus(existingReq.booking_status);
         }
 
         // Check if already paid/rated
@@ -88,10 +88,10 @@ export default function RideDetailsPage() {
       // Fetch requests if driver
       if (user && data?.driver_id === user.id) {
         const { data: reqs } = await supabase
-          .from('ride_requests')
-          .select('*, passenger:profiles(name, avatar_url)')
+          .from('ride_bookings')
+          .select('*, rider:profiles(full_name, avatar_url)')
           .eq('ride_id', id);
-        if (reqs) setRequests(reqs);
+        if (reqs) setRequests(reqs as any);
       }
 
       setLoading(false);
@@ -109,10 +109,10 @@ export default function RideDetailsPage() {
     }
   };
 
-  const handleUpdateRequest = async (requestId: string, status: string) => {
+  const handleUpdateRequest = async (requestId: string, booking_status: string) => {
     try {
-      await updateRequestStatus({ requestId, status });
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status } : r));
+      await updateRequestStatus({ requestId, status: booking_status });
+      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, booking_status } : r));
     } catch (err) {
       alert('Failed to update request.');
     }
@@ -181,10 +181,10 @@ export default function RideDetailsPage() {
             {/* Driver Info Card */}
             <div className="bg-surface p-5 rounded-3xl border border-divider flex items-center gap-4 -mt-10 shadow-lg group-hover:border-accent/30 transition-all">
               <div className="w-14 h-14 rounded-2xl bg-accent-burst flex items-center justify-center text-white text-xl font-black border-2 border-primary shadow-xl">
-                {ride.driver.name[0]}
+                {ride.driver.full_name[0]}
               </div>
               <div className="flex-1">
-                <h2 className="font-black text-textPrimary leading-tight tracking-tight">{ride.driver.name}</h2>
+                <h2 className="font-black text-textPrimary leading-tight tracking-tight">{ride.driver.full_name}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="flex items-center gap-1 text-[9px] bg-warning/10 text-warning px-2 py-0.5 rounded-full font-black uppercase border border-warning/20">
                     <Star className="w-2.5 h-2.5 fill-warning" /> 4.9
@@ -304,28 +304,28 @@ export default function RideDetailsPage() {
                         <div key={req.id} className="flex items-center justify-between glass-card p-4 hover:border-accent/30 transition-all group">
                           <div className="flex items-center gap-4">
                             <div className="w-11 h-11 rounded-xl bg-surface-elevated flex items-center justify-center text-accent font-black border border-divider group-hover:border-accent/30 transition-colors">
-                              {req.passenger.name[0]}
+                              {req.rider.full_name[0]}
                             </div>
                             <div>
-                              <p className="font-black text-textPrimary text-sm leading-tight tracking-tight">{req.passenger.name}</p>
+                              <p className="font-black text-textPrimary text-sm leading-tight tracking-tight">{req.rider.full_name}</p>
                               <span className={`text-[9px] font-black uppercase tracking-widest mt-0.5 flex items-center gap-1 ${
-                                req.status === 'accepted' ? 'text-success' :
-                                req.status === 'rejected' ? 'text-error' : 'text-warning'
+                                req.booking_status === 'confirmed' ? 'text-success' :
+                                req.booking_status === 'cancelled' ? 'text-error' : 'text-warning'
                               }`}>
                                 <div className={`w-1 h-1 rounded-full ${
-                                  req.status === 'accepted' ? 'bg-success' :
-                                  req.status === 'rejected' ? 'bg-error' : 'bg-warning'
+                                  req.booking_status === 'confirmed' ? 'bg-success' :
+                                  req.booking_status === 'cancelled' ? 'bg-error' : 'bg-warning'
                                 } animate-pulse`} />
-                                {req.status}
+                                {req.booking_status}
                               </span>
                             </div>
                           </div>
-                          {req.status === 'pending' && ride.status === 'pending' && (
+                          {req.booking_status === 'pending' && ride.status === 'pending' && (
                             <div className="flex gap-2">
-                              <button onClick={() => handleUpdateRequest(req.id, 'accepted')} className="w-10 h-10 bg-success text-white rounded-xl flex items-center justify-center shadow-lg shadow-success/20 active:scale-90 transition-all">
+                              <button onClick={() => handleUpdateRequest(req.id, 'confirmed')} className="w-10 h-10 bg-success text-white rounded-xl flex items-center justify-center shadow-lg shadow-success/20 active:scale-90 transition-all">
                                 <CheckCircle2 className="w-5 h-5" />
                               </button>
-                              <button onClick={() => handleUpdateRequest(req.id, 'rejected')} className="w-10 h-10 bg-error/10 text-error rounded-xl flex items-center justify-center border border-error/30 active:scale-90 transition-all">
+                              <button onClick={() => handleUpdateRequest(req.id, 'cancelled')} className="w-10 h-10 bg-error/10 text-error rounded-xl flex items-center justify-center border border-error/30 active:scale-90 transition-all">
                                 <XCircle className="w-5 h-5" />
                               </button>
                             </div>
@@ -354,12 +354,12 @@ export default function RideDetailsPage() {
                       <Clock className="w-12 h-12 text-warning mx-auto mb-4 animate-pulse drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
                     )}
                     <h4 className="font-black text-textPrimary uppercase tracking-[0.3em] mb-2">
-                      {requestStatus === 'accepted' ? 'Confirmed' : requestStatus === 'rejected' ? 'Declined' : 'Awaiting'}
+                      {requestStatus === 'confirmed' ? 'Confirmed' : requestStatus === 'cancelled' ? 'Declined' : 'Awaiting'}
                     </h4>
                     <p className={`text-[10px] font-black uppercase tracking-widest ${
-                      requestStatus === 'accepted' ? 'text-success' : requestStatus === 'rejected' ? 'text-error' : 'text-warning'
+                      requestStatus === 'confirmed' ? 'text-success' : requestStatus === 'cancelled' ? 'text-error' : 'text-warning'
                     }`}>
-                      {requestStatus === 'accepted' ? 'Secure your seat' : requestStatus === 'rejected' ? 'Search new trail' : 'Driver reviewing credentials'}
+                      {requestStatus === 'confirmed' ? 'Secure your seat' : requestStatus === 'cancelled' ? 'Search new trail' : 'Driver reviewing credentials'}
                     </p>
                   </div>
 
@@ -482,7 +482,7 @@ export default function RideDetailsPage() {
       <RatingModal 
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
-        driverName={ride.driver.name}
+        driverName={ride.driver.full_name}
         onSubmit={async (rating: number, review: string) => {
           try {
             await submitRating({ rideId: ride.id, driverId: ride.driver_id, rating, review });
