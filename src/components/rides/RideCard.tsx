@@ -18,6 +18,7 @@ interface RideCardProps {
     };
     trust_score?: number;
     efficiency_score?: number;
+    created_at?: string;
   };
   onClick?: () => void;
   isRecommended?: boolean;
@@ -25,10 +26,12 @@ interface RideCardProps {
 
 export default function RideCard({ ride, onClick, isRecommended }: RideCardProps) {
   const trustScore = ride.trust_score || 98;
-  const co2Saved = ride.efficiency_score || "1.2"; // Use a stable default instead of Math.random() during render
+  const co2Saved = ride.efficiency_score || "1.2";
 
   const departureDate = new Date(ride.departure_time);
-  const arrivalDate = new Date(departureDate.getTime() + 20 * 60000); // 20 mins campus ride estimate
+  const arrivalDate = new Date(departureDate.getTime() + 20 * 60000); 
+
+  const isNew = ride.created_at ? (new Date().getTime() - new Date(ride.created_at).getTime() < 5 * 60000) : false;
 
   return (
     <div 
@@ -43,11 +46,13 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
         </div>
       )}
 
-      {/* Live Pulse Indicator for new rides (e.g., within 5 mins - using mocked check for demo) */}
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">
-        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-        <span className="text-[8px] font-black text-success uppercase tracking-[0.2em]">Live</span>
-      </div>
+      {/* Live Pulse Indicator for new rides (within 5 mins) */}
+      {isNew && (
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">
+          <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+          <span className="text-[8px] font-black text-success uppercase tracking-[0.2em]">Live</span>
+        </div>
+      )}
       
       <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
       

@@ -105,6 +105,7 @@ export default function CreateRide() {
         seat_available: formData.seat_available,
         price: fareValue,
         fare: fareValue,
+        status: 'open',
         vehicle_id: vehicle.id,
         pickup_landmark_id: formData.pickup_landmark_id || null,
         destination_landmark_id: formData.destination_landmark_id || null,

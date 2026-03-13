@@ -2,13 +2,15 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRides } from '@/hooks/useRides';
+import { useQueryClient } from '@tanstack/react-query';
 import Navbar from '@/components/layout/Navbar';
 import RideCard from '@/components/rides/RideCard';
-import { Search, SlidersHorizontal, MapPin, ArrowLeft, Navigation, Filter, Sparkles, Bike, PlusCircle } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ArrowLeft, Navigation, Filter, Sparkles, Bike, PlusCircle, Clock } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function RideDiscoveryContent() {
   const { rides, isLoading } = useRides();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -37,14 +39,25 @@ function RideDiscoveryContent() {
     }
   }, [rides, prevRideCount]);
 
+  // Utility for fuzzy substring matching
+  const isFuzzyMatch = (source: string, target: string) => {
+    if (!source || !target) return false;
+    const s = source.toLowerCase().trim();
+    const t = target.toLowerCase().trim();
+    return s.includes(t) || t.includes(s);
+  };
+
   const exactMatches = rides?.filter(ride => {
     const urlPick = searchParams.get('pickup')?.toLowerCase() || '';
     const urlDest = searchParams.get('destination')?.toLowerCase() || '';
     
     if (!urlPick && !urlDest) return false;
 
-    const routePickMatch = urlPick ? (ride.pickup_landmark?.name?.toLowerCase().includes(urlPick) || ride.pickup_location?.toLowerCase().includes(urlPick)) : true;
-    const routeDestMatch = urlDest ? (ride.destination_landmark?.name?.toLowerCase().includes(urlDest) || ride.destination?.toLowerCase().includes(urlDest)) : true;
+    const ridePick = ride.pickup_landmark?.name || ride.pickup_location || '';
+    const rideDest = ride.destination_landmark?.name || ride.destination || '';
+
+    const routePickMatch = urlPick ? isFuzzyMatch(ridePick, urlPick) : true;
+    const routeDestMatch = urlDest ? isFuzzyMatch(rideDest, urlDest) : true;
     
     return routePickMatch && routeDestMatch && (ride.seat_available > 0);
   }) || [];
@@ -54,11 +67,12 @@ function RideDiscoveryContent() {
     const isExact = exactMatches.some(m => m.id === ride.id);
     if (isExact) return false;
 
+    const ridePick = ride.pickup_landmark?.name || ride.pickup_location || '';
+    const rideDest = ride.destination_landmark?.name || ride.destination || '';
+
     const matchesSearch = !searchTerm || 
-                         (ride.pickup_landmark?.name?.toLowerCase().includes(searchLower) ?? false) ||
-                         (ride.destination_landmark?.name?.toLowerCase().includes(searchLower) ?? false) ||
-                         (ride.pickup_location?.toLowerCase().includes(searchLower) ?? false) ||
-                         (ride.destination?.toLowerCase().includes(searchLower) ?? false);
+                         isFuzzyMatch(ridePick, searchLower) ||
+                         isFuzzyMatch(rideDest, searchLower);
 
     return matchesSearch && (ride.seat_available > 0);
   }) || [];
@@ -110,18 +124,28 @@ function RideDiscoveryContent() {
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative group">
-          <div className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-accent-burst rounded-xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-focus-within:scale-110 transition-all duration-300">
-            <Search className="w-4 h-4" />
+        {/* Search Bar & Refresh */}
+        <div className="flex items-center gap-3">
+          <div className="relative group flex-1">
+            <div className="absolute left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-accent-burst rounded-xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-focus-within:scale-110 transition-all duration-300">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search destination..."
+              className="w-full pl-[4.5rem] pr-6 py-6 bg-surface rounded-[2rem] border border-divider shadow-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all font-black text-textPrimary placeholder:font-bold placeholder:text-textSecondary/40 text-sm tracking-tight"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Search destination..."
-            className="w-full pl-[4.5rem] pr-6 py-6 bg-surface rounded-[2rem] border border-divider shadow-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all font-black text-textPrimary placeholder:font-bold placeholder:text-textSecondary/40 text-sm tracking-tight"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <button 
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['rides'] })}
+            disabled={isLoading}
+            className="w-14 h-14 bg-surface rounded-2xl border border-divider flex items-center justify-center text-accent hover:bg-accent/10 hover:border-accent/30 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            title="Refresh rides"
+          >
+            <Clock className={`w-6 h-6 ${isLoading ? 'animate-spin text-info' : ''}`} />
+          </button>
         </div>
 
         {/* Results Info */}

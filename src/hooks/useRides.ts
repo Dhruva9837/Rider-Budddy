@@ -17,7 +17,8 @@ export function useRides() {
           schema: 'public',
           table: 'rides'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time update received:', payload);
           // Invalidate rides query to fetch fresh data with relations
           queryClient.invalidateQueries({ queryKey: ['rides'] });
           queryClient.invalidateQueries({ queryKey: ['passenger_requests'] });
@@ -38,6 +39,7 @@ export function useRides() {
           .from('rides')
           .select(`
             *,
+            created_at,
             driver:profiles(full_name, avatar_url),
             pickup_landmark:landmarks!pickup_landmark_id(name),
             destination_landmark:landmarks!destination_landmark_id(name)
