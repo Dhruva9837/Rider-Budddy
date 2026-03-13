@@ -54,7 +54,7 @@ export default function Home() {
           <div className="space-y-10 animate-in slide-in-from-left duration-700">
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-7xl font-black tracking-tighter leading-[0.9] uppercase">
-                Ride the <span className="text-accent">Campus Pulse</span>
+                 <span className="text-accent">Ride Buddy</span>
               </h1>
               <p className="text-textSecondary text-lg font-medium max-w-lg leading-relaxed">
                 The elite mobility network for students. Fast, secure, and hyper-local ride-sharing designed for modern campus life.
