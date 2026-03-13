@@ -5,7 +5,7 @@ import { useRides } from '@/hooks/useRides';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Link from 'next/link';
-import { MapPin, Users, IndianRupee, Navigation, Clock, Info, Bike } from 'lucide-react';
+import { MapPin, Users, IndianRupee, Navigation, Clock, Info, Bike, Crosshair } from 'lucide-react';
 
 const CAMPUS_LANDMARKS = [
   'Main Gate', 'Hostel Block A', 'Hostel Block B', 'Library', 
@@ -29,6 +29,43 @@ export default function RequestRide() {
   const [destSearch, setDestSearch] = useState('');
   const [showStartSugg, setShowStartSugg] = useState(false);
   const [showDestSugg, setShowDestSugg] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const useCurrentLocation = () => {
+    setLocationError(null);
+    setLocating(true);
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported');
+      setLocating(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const addr = data.address;
+          const displayName = data.display_name ||
+            [addr?.road, addr?.suburb || addr?.neighbourhood, addr?.city || addr?.town].filter(Boolean).join(', ') ||
+            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          setPickupSearch(displayName);
+        } catch {
+          setPickupSearch(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        }
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError(err.message === 'User denied Geolocation' ? 'Location access denied' : 'Could not get location');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,14 +129,26 @@ export default function RequestRide() {
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-info" />
                 <input
                   type="text"
-                  placeholder="Where are you?"
-                  className="w-full pl-12 pr-4 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-info/30 focus:border-info/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
+                  placeholder="Where are you? Or use current location"
+                  className="w-full pl-12 pr-14 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-info/30 focus:border-info/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
                   value={pickupSearch}
                   onFocus={() => setShowStartSugg(true)}
                   onBlur={() => setTimeout(() => setShowStartSugg(false), 200)}
-                  onChange={(e) => setPickupSearch(e.target.value)}
+                  onChange={(e) => { setPickupSearch(e.target.value); setLocationError(null); }}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={useCurrentLocation}
+                  disabled={locating}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-info/10 text-info hover:bg-info/20 disabled:opacity-50 transition-all"
+                  title="Use current location"
+                >
+                  <Crosshair className="w-4 h-4" />
+                </button>
+                {locationError && (
+                  <p className="absolute -bottom-5 left-0 text-[10px] text-error font-bold">{locationError}</p>
+                )}
               </div>
               {showStartSugg && (
                 <div className="absolute z-50 left-0 right-0 mt-2 bg-surface-elevated shadow-2xl border border-divider overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 rounded-xl">
