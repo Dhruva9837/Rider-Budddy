@@ -8,6 +8,8 @@ interface RideCardProps {
     id: string;
     pickup_landmark?: { name: string };
     destination_landmark?: { name: string };
+    pickup_location: string;
+    destination: string;
     departure_time: string;
     seat_available: number;
     fare: number;
@@ -101,11 +103,11 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
           <div className="flex-1 space-y-3">
             <div>
               <p className="text-[10px] font-bold text-textSecondary uppercase leading-none mb-1">Pickup</p>
-              <p className="font-bold text-textPrimary line-clamp-1">{ride.pickup_landmark?.name || 'Unknown'}</p>
+              <p className="font-bold text-textPrimary line-clamp-1">{ride.pickup_landmark?.name || ride.pickup_location || 'Unknown'}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-textSecondary uppercase leading-none mb-1">Destination</p>
-              <p className="font-bold text-textPrimary line-clamp-1">{ride.destination_landmark?.name || 'Unknown'}</p>
+              <p className="font-bold text-textPrimary line-clamp-1">{ride.destination_landmark?.name || ride.destination || 'Unknown'}</p>
             </div>
           </div>
         </div>

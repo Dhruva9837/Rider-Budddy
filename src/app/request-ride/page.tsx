@@ -71,10 +71,6 @@ export default function RequestRide() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!formData.pickup_landmark_id || !formData.destination_landmark_id) {
-        alert("Please select valid landmarks from the list");
-        return;
-      }
       await createPassengerRequest({
         ...formData,
         pickup_location: pickupSearch,
@@ -130,7 +126,7 @@ export default function RequestRide() {
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-info" />
                 <input
                   type="text"
-                  placeholder="Where are you? Or use current location"
+                  placeholder="Enter pickup location or select landmark"
                   className="w-full pl-12 pr-14 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-info/30 focus:border-info/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
                   value={pickupSearch}
                   onFocus={() => setShowStartSugg(true)}
@@ -176,7 +172,7 @@ export default function RequestRide() {
                 <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-info" />
                 <input
                   type="text"
-                  placeholder="Target Destination"
+                  placeholder="Enter destination or select landmark"
                   className="w-full pl-12 pr-4 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-info/30 focus:border-info/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
                   value={destSearch}
                   onFocus={() => setShowDestSugg(true)}

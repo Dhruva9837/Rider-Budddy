@@ -186,7 +186,7 @@ export default function CreateRide() {
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
                 <input
                   type="text"
-                  placeholder="Starting point or use current location"
+                  placeholder="Enter pickup location or select landmark"
                   className="w-full pl-12 pr-14 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
                   value={pickupSearch}
                   onFocus={() => setShowStartSugg(true)}
@@ -232,7 +232,7 @@ export default function CreateRide() {
                 <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
                 <input
                   type="text"
-                  placeholder="Target Destination"
+                  placeholder="Enter destination or select landmark"
                   className="w-full pl-12 pr-4 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-bold text-textPrimary placeholder:text-textSecondary/30 text-sm"
                   value={destSearch}
                   onFocus={() => setShowDestSugg(true)}
