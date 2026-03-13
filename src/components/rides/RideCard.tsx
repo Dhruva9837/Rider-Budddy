@@ -25,8 +25,8 @@ interface RideCardProps {
 }
 
 export default function RideCard({ ride, onClick, isRecommended }: RideCardProps) {
-  const trustScore = ride.trust_score || 98;
-  const co2Saved = ride.efficiency_score || "1.2";
+  const trustScore = ride.trust_score || null;
+  const co2Saved = ride.efficiency_score || null;
 
   const departureDate = new Date(ride.departure_time);
   const arrivalDate = new Date(departureDate.getTime() + 20 * 60000); 
@@ -69,9 +69,11 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
                 <Star className="w-3 h-3 fill-warning" /> 4.9
               </span> 
               */}
-              <span className="flex items-center gap-1 text-[10px] bg-success/10 text-success px-2 py-0.5 rounded-full font-bold border border-success/20">
-                <ShieldCheck className="w-3 h-3" /> {trustScore}% Trust
-              </span>
+              {trustScore !== null && (
+                <span className="flex items-center gap-1 text-[10px] bg-success/10 text-success px-2 py-0.5 rounded-full font-bold border border-success/20">
+                  <ShieldCheck className="w-3 h-3" /> {trustScore}% Trust
+                </span>
+              )}
               {ride.vehicle_type && (
                 <span className="flex items-center gap-1 text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-bold border border-accent/20">
                   <Bike className="w-3 h-3" /> {ride.vehicle_type}
@@ -127,10 +129,12 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
             </div>
           </div>
           
-          <div className="flex items-center gap-1.5 text-success bg-success/10 px-3 py-1.5 rounded-xl border border-success/20">
-            <Leaf className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-black uppercase tracking-tighter">Saves {co2Saved}kg CO2</span>
-          </div>
+          {co2Saved !== null && (
+            <div className="flex items-center gap-1.5 text-success bg-success/10 px-3 py-1.5 rounded-xl border border-success/20">
+              <Leaf className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-black uppercase tracking-tighter">Saves {co2Saved}kg CO2</span>
+            </div>
+          )}
         </div>
       </div>
       

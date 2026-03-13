@@ -61,12 +61,7 @@ export default function RideDetailsPage() {
         .single();
 
       if (!error && data) {
-        // Mock trust/efficiency if not present in DB
-        setRide({
-          ...data,
-          trust_score: 98,
-          efficiency_score: 1.2
-        });
+        setRide(data);
       }
 
       // Check if user already requested

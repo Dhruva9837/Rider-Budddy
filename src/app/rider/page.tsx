@@ -97,44 +97,43 @@ export default function RiderDashboard() {
           <div className="grid grid-cols-2 gap-5">
             <div className="bg-surface-elevated p-6 rounded-3xl border border-divider transition-all hover:border-accent/30 group/stat shadow-sm">
               <Star className="w-6 h-6 text-accent mb-4 transition-transform group-hover/stat:rotate-12" />
-              <p className="text-3xl font-black text-textPrimary tracking-tighter">{profile.rides_completed}</p>
+              <p className="text-3xl font-black text-textPrimary tracking-tighter">{profile.rides_completed || 0}</p>
               <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mt-1 opacity-60">Missions Completed</p>
             </div>
             <div className="bg-surface-elevated p-6 rounded-3xl border border-divider transition-all hover:border-success/30 group/stat shadow-sm">
               <Leaf className="w-6 h-6 text-success mb-4 transition-transform group-hover/stat:rotate-12" />
-              <p className="text-3xl font-black text-textPrimary tracking-tighter">1.2kg</p>
+              <p className="text-3xl font-black text-textPrimary tracking-tighter">0.0kg</p>
               <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mt-1 opacity-60">Carbon Offset</p>
             </div>
             <div className="bg-surface-elevated p-6 rounded-3xl border border-divider transition-all hover:border-warning/30 group/stat shadow-sm">
               <IndianRupee className="w-6 h-6 text-warning mb-4 transition-transform group-hover/stat:rotate-12" />
-              <p className="text-3xl font-black text-textPrimary tracking-tighter">₹1250</p>
+              <p className="text-3xl font-black text-textPrimary tracking-tighter">₹0</p>
               <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mt-1 opacity-60">Currency Saved</p>
             </div>
             <div className="bg-surface-elevated p-6 rounded-3xl border border-divider transition-all hover:border-info/30 group/stat shadow-sm">
               <ShieldCheck className="w-6 h-6 text-info mb-4 transition-transform group-hover/stat:rotate-12" />
-              <p className="text-3xl font-black text-textPrimary tracking-tighter">{profile.trust_score}%</p>
+              <p className="text-3xl font-black text-textPrimary tracking-tighter">{profile.trust_score || 0}%</p>
               <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mt-1 opacity-60">Trust Index</p>
             </div>
           </div>
         </section>
 
-        {/* Quest Section (Fun Mockup) */}
-        <section className="space-y-4">
+        {/* Quest Section - Hidden until implemented */}
+        <section className="space-y-4 opacity-50">
           <h2 className="text-[10px] font-black text-textPrimary uppercase tracking-[0.3em] flex items-center gap-2 ml-1">
              <Compass className="w-3.5 h-3.5 text-accent" /> Active Quests
           </h2>
-          <div className="glass-card p-6 bg-accent/5 border-accent/20 flex flex-col gap-4">
+          <div className="glass-card p-6 bg-surface-elevated border-divider flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-accent/10 rounded-lg text-accent font-black text-[10px]">III</div>
-                <span className="text-xs font-black uppercase text-textPrimary tracking-widest">ECO-WARRIOR LEVEL 3</span>
+                <div className="p-2 bg-surface rounded-lg text-textSecondary font-black text-[10px]">I</div>
+                <span className="text-xs font-black uppercase text-textSecondary tracking-widest">ECO-WARRIOR LEVEL 1</span>
               </div>
-              <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
             </div>
-            <div className="w-full h-1.5 bg-accent/20 rounded-full overflow-hidden">
-              <div className="w-[65%] h-full bg-accent rounded-full shadow-[0_0_8px_rgba(var(--accent-rgb),0.5)]" />
+            <div className="w-full h-1.5 bg-divider rounded-full overflow-hidden">
+              <div className="w-[0%] h-full bg-accent rounded-full" />
             </div>
-            <p className="text-[9px] font-bold text-textSecondary uppercase tracking-widest">3 more rides to reach level 4 and unlock "Green Citizen" badge.</p>
+            <p className="text-[9px] font-bold text-textSecondary uppercase tracking-widest">Complete your first mission to begin your progress.</p>
           </div>
         </section>
       </main>

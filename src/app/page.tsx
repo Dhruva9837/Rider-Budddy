@@ -121,12 +121,12 @@ export default function Home() {
             {/* Quick Stats */}
             <div className="flex gap-10 pt-4">
               <div>
-                <p className="text-3xl font-black text-white leading-none">5k+</p>
+                <p className="text-3xl font-black text-white leading-none">{rides?.length || 0}</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-textSecondary mt-2">Active Rides</p>
               </div>
               <div className="w-[1px] h-10 bg-divider" />
               <div>
-                <p className="text-3xl font-black text-white leading-none">98%</p>
+                <p className="text-3xl font-black text-white leading-none">100%</p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-textSecondary mt-2">Safety Score</p>
               </div>
             </div>
