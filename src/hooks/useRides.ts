@@ -4,6 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useEffect } from 'react';
 
+// Random 4-digit OTP generator
+const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
+
 export function useRides() {
   const queryClient = useQueryClient();
 
@@ -91,7 +94,12 @@ export function useRides() {
 
       const { data, error } = await supabase
         .from('ride_bookings')
-        .insert([{ ride_id: rideId, rider_id: user.id }])
+        .insert([{ 
+          ride_id: rideId, 
+          rider_id: user.id,
+          confirmation_otp: generateOTP(),
+          otp_verified: false
+        }])
         .select()
         .single();
 
@@ -126,7 +134,12 @@ export function useRides() {
 
       const { data, error } = await supabase
         .from('passenger_requests')
-        .insert([{ ...requestData, passenger_id: user.id }])
+        .insert([{ 
+          ...requestData, 
+          passenger_id: user.id,
+          confirmation_otp: generateOTP(),
+          otp_verified: false
+        }])
         .select()
         .single();
 
@@ -207,6 +220,33 @@ export function useRides() {
     isSubmittingRating: submitRatingMutation.isPending,
     landmarks: landmarksQuery.data,
     isLoadingLandmarks: landmarksQuery.isLoading,
+    // OTP Verification Mutations
+    verifyBookingOtp: async (bookingId: string, otp: string) => {
+      const { data, error } = await supabase
+        .from('ride_bookings')
+        .update({ otp_verified: true, booking_status: 'completed' })
+        .match({ id: bookingId, confirmation_otp: otp })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      if (!data) throw new Error('Invalid OTP');
+      queryClient.invalidateQueries({ queryKey: ['rides'] });
+      return data;
+    },
+    verifyPassengerRequestOtp: async (requestId: string, otp: string) => {
+      const { data, error } = await supabase
+        .from('passenger_requests')
+        .update({ otp_verified: true, status: 'completed' })
+        .match({ id: requestId, confirmation_otp: otp })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      if (!data) throw new Error('Invalid OTP');
+      queryClient.invalidateQueries({ queryKey: ['passenger_requests'] });
+      return data;
+    },
   };
 }
 

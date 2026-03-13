@@ -25,6 +25,9 @@ export default function RiderDashboard() {
     trust_score: 0,
     rides_completed: 0,
   });
+  const [activeBookings, setActiveBookings] = useState<any[]>([]);
+  const [activeRequests, setActiveRequests] = useState<any[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -45,6 +48,27 @@ export default function RiderDashboard() {
               rides_completed: data.rides_completed || 0,
             });
           }
+        });
+
+      // Fetch active bookings (rides you booked)
+      supabase
+        .from('ride_bookings')
+        .select('*, ride:rides(*, driver:profiles(full_name))')
+        .eq('rider_id', user.id)
+        .in('booking_status', ['pending', 'confirmed'])
+        .then(({ data }) => {
+          setActiveBookings(data || []);
+        });
+
+      // Fetch active passenger requests (requests you posted that are accepted)
+      supabase
+        .from('passenger_requests')
+        .select('*, driver:profiles(full_name)')
+        .eq('passenger_id', user.id)
+        .in('status', ['pending', 'accepted'])
+        .then(({ data }) => {
+          setActiveRequests(data || []);
+          setLoadingBookings(false);
         });
     }
   }, [user, authLoading, router]);
@@ -115,6 +139,42 @@ export default function RiderDashboard() {
               <p className="text-3xl font-black text-textPrimary tracking-tighter">{profile.trust_score || 0}%</p>
               <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mt-1 opacity-60">Trust Index</p>
             </div>
+          </div>
+        </section>
+        
+        {/* Active Missions (OTP Section) */}
+        <section className="space-y-4">
+          <h2 className="text-[10px] font-black text-textPrimary uppercase tracking-[0.3em] flex items-center gap-2 ml-1">
+             <ShieldCheck className="w-3.5 h-3.5 text-info" /> Confirmation Matrix
+          </h2>
+          
+          <div className="space-y-4">
+            {[...activeBookings, ...activeRequests].length === 0 ? (
+              <div className="glass-card p-6 bg-surface-elevated/30 border-divider text-center">
+                <p className="text-[9px] font-black text-textSecondary uppercase tracking-widest opacity-40">No active extraction codes</p>
+              </div>
+            ) : (
+              [...activeBookings, ...activeRequests].map((item, idx) => (
+                <div key={idx} className="glass-card p-6 bg-surface-elevated border-info/30 border-2 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <ShieldCheck className="w-12 h-12 text-info" />
+                  </div>
+                  <div className="flex justify-between items-start relative z-10">
+                    <div>
+                      <p className="text-[9px] font-black text-info uppercase tracking-[0.2em] mb-1">Rider Verification Required</p>
+                      <h3 className="text-sm font-black text-textPrimary uppercase tracking-tight">
+                        {item.ride?.driver?.full_name || item.driver?.full_name || 'Awaiting Driver'}
+                      </h3>
+                      <p className="text-[9px] font-bold text-textSecondary uppercase tracking-widest mt-1">Share this code with your pilot</p>
+                    </div>
+                    <div className="bg-info/10 border border-info/30 px-4 py-2 rounded-xl text-center">
+                      <p className="text-[8px] font-black text-info uppercase tracking-widest mb-1">OTP</p>
+                      <p className="text-xl font-black text-info tracking-[0.2em]">{item.confirmation_otp || '----'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 

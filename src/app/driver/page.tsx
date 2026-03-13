@@ -30,7 +30,11 @@ export default function DriverDashboard() {
   });
   const [license, setLicense] = useState('');
   const [lastRide, setLastRide] = useState<any>(null);
+  const [activeMissionBookings, setActiveMissionBookings] = useState<any[]>([]);
+  const [activeMissionRequests, setActiveMissionRequests] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState<string | null>(null);
+  const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -38,45 +42,101 @@ export default function DriverDashboard() {
       return;
     }
     if (user) {
-      // 1. Fetch Vehicle
-      supabase
-        .from('vehicles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setVehicle({
-              id: data.id,
-              vehicle_type: data.vehicle_type || '',
-              vehicle_model: data.vehicle_model || '',
-              vehicle_number: data.vehicle_number || '',
-              seat_capacity: data.seat_capacity || 1,
-            });
-          }
-        });
+      const fetchData = async () => {
+        // 1. Fetch Vehicle
+        const { data: vehicleData } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (vehicleData) {
+          setVehicle({
+            id: vehicleData.id,
+            vehicle_type: vehicleData.vehicle_type || '',
+            vehicle_model: vehicleData.vehicle_model || '',
+            vehicle_number: vehicleData.vehicle_number || '',
+            seat_capacity: vehicleData.seat_capacity || 1,
+          });
+        }
 
-      // 1.1 Fetch Profile for license
-      supabase
-        .from('profiles')
-        .select('license_number')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) setLicense(data.license_number || '');
-        });
+        // 1.1 Fetch Profile for license
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('license_number')
+          .eq('id', user.id)
+          .single();
+        if (profileData) setLicense(profileData.license_number || '');
 
-      // 2. Fetch Last Ride
-      supabase
-        .from('rides')
-        .select('*')
-        .eq('driver_id', user.id)
-        .order('departure_time', { ascending: false })
-        .limit(1)
-        .single()
-        .then(({ data }) => setLastRide(data));
+        // 2. Fetch Last Ride
+        const { data: lastRideData } = await supabase
+          .from('rides')
+          .select('*')
+          .eq('driver_id', user.id)
+          .order('departure_time', { ascending: false })
+          .limit(1)
+          .single();
+        setLastRide(lastRideData);
+
+        // 3. Fetch Active Missions (Riders waiting for verification)
+        const { data: currentRide } = await supabase
+          .from('rides')
+          .select('id')
+          .eq('driver_id', user.id)
+          .eq('status', 'open')
+          .maybeSingle();
+
+        if (currentRide) {
+          const { data: bookings } = await supabase
+            .from('ride_bookings')
+            .select('*, rider:profiles(full_name)')
+            .eq('ride_id', currentRide.id)
+            .eq('otp_verified', false);
+          setActiveMissionBookings(bookings || []);
+        }
+
+        const { data: requests } = await supabase
+          .from('passenger_requests')
+          .select('*, passenger:profiles(full_name)')
+          .eq('driver_id', user.id)
+          .eq('otp_verified', false)
+          .in('status', ['pending', 'accepted']);
+        setActiveMissionRequests(requests || []);
+      };
+
+      fetchData();
     }
   }, [user, authLoading, router]);
+
+  const handleVerifyOtp = async (id: string, type: 'booking' | 'request') => {
+    const otp = otpInputs[id];
+    if (!otp || otp.length !== 4) {
+      alert('Enter 4-digit security code');
+      return;
+    }
+    setVerifying(id);
+    try {
+      const table = type === 'booking' ? 'ride_bookings' : 'passenger_requests';
+      const statusField = type === 'booking' ? 'booking_status' : 'status';
+      
+      const { data, error } = await supabase
+        .from(table)
+        .update({ otp_verified: true, [statusField]: 'completed' })
+        .match({ id, confirmation_otp: otp })
+        .select()
+        .single();
+
+      if (error || !data) throw new Error('Invalid Code');
+      
+      alert('Verification Successful. Mission Completed.');
+      // Refresh local state
+      setActiveMissionBookings(prev => prev.filter(b => b.id !== id));
+      setActiveMissionRequests(prev => prev.filter(r => r.id !== id));
+    } catch (error) {
+      alert('Invalid security code. Access denied.');
+    }
+    setVerifying(null);
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -258,6 +318,50 @@ export default function DriverDashboard() {
                 </div>
               </Link>
             </div>
+
+            {/* Active Mission Verifications */}
+            <section className="space-y-4">
+              <h2 className="text-[10px] font-black text-textPrimary uppercase tracking-[0.3em] flex items-center gap-2 ml-1 text-info">
+                 <Shield className="w-3.5 h-3.5" /> Security Clearances Required
+              </h2>
+              <div className="space-y-4">
+                {[...activeMissionBookings, ...activeMissionRequests].length === 0 ? (
+                  <div className="glass-card p-6 bg-surface-elevated/30 border-divider text-center">
+                    <p className="text-[9px] font-black text-textSecondary uppercase tracking-widest opacity-40">All sectors clear</p>
+                  </div>
+                ) : (
+                  [...activeMissionBookings, ...activeMissionRequests].map((item, idx) => (
+                    <div key={idx} className="glass-card p-6 bg-surface-elevated border-info/30 border-2 relative overflow-hidden group">
+                      <div className="flex justify-between items-center gap-4">
+                        <div className="flex-1">
+                          <p className="text-[9px] font-black text-info uppercase tracking-[0.2em] mb-1">Identity Verification</p>
+                          <h3 className="text-sm font-black text-textPrimary uppercase tracking-tight">
+                            {item.rider?.full_name || item.passenger?.full_name || 'Rider Identified'}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="text"
+                            maxLength={4}
+                            placeholder="CODE"
+                            value={otpInputs[item.id] || ''}
+                            onChange={e => setOtpInputs({ ...otpInputs, [item.id]: e.target.value })}
+                            className="w-16 h-12 bg-surface rounded-xl border border-divider text-center font-black text-lg text-textPrimary focus:ring-2 focus:ring-info outline-none"
+                          />
+                          <button 
+                            onClick={() => handleVerifyOtp(item.id, item.ride_id ? 'booking' : 'request')}
+                            disabled={verifying === item.id}
+                            className="bg-info text-white h-12 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+                          >
+                            {verifying === item.id ? '...' : 'VERIFY'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
 
             {/* Last Ride Card */}
             <section className="space-y-4">
