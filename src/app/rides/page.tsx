@@ -16,15 +16,27 @@ function RideDiscoveryContent() {
 
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Sync search input with URL
   useEffect(() => {
+    const q = searchParams.get('q');
     const dest = searchParams.get('destination');
     const pick = searchParams.get('pickup');
-    if (dest) {
-      setSearchTerm(dest);
-    } else if (pick) {
-      setSearchTerm(pick);
-    }
+    setSearchTerm(q || dest || pick || '');
   }, [searchParams]);
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val);
+    const params = new URLSearchParams(searchParams);
+    if (val) {
+      params.set('q', val);
+      // Also set destination for the 'Exact Match' logic to pick it up
+      params.set('destination', val);
+    } else {
+      params.delete('q');
+      params.delete('destination');
+    }
+    router.replace(`/rides?${params.toString()}`, { scroll: false });
+  };
 
   const [showNewRideToast, setShowNewRideToast] = useState(false);
   const [prevRideCount, setPrevRideCount] = useState(0);
@@ -48,18 +60,22 @@ function RideDiscoveryContent() {
   };
 
   const exactMatches = rides?.filter(ride => {
+    const q = searchParams.get('q')?.toLowerCase() || '';
     const urlPick = searchParams.get('pickup')?.toLowerCase() || '';
     const urlDest = searchParams.get('destination')?.toLowerCase() || '';
     
-    if (!urlPick && !urlDest) return false;
+    if (!q && !urlPick && !urlDest) return false;
 
     const ridePick = ride.pickup_landmark?.name || ride.pickup_location || '';
     const rideDest = ride.destination_landmark?.name || ride.destination || '';
 
-    const routePickMatch = urlPick ? isFuzzyMatch(ridePick, urlPick) : true;
-    const routeDestMatch = urlDest ? isFuzzyMatch(rideDest, urlDest) : true;
+    // If there is a generic 'q' or 'destination', check if it matches either end
+    const matchesQ = q ? (isFuzzyMatch(ridePick, q) || isFuzzyMatch(rideDest, q)) : true;
+    const matchesPick = urlPick ? isFuzzyMatch(ridePick, urlPick) : true;
+    const matchesDest = urlDest ? isFuzzyMatch(rideDest, urlDest) : true;
     
-    return routePickMatch && routeDestMatch && (ride.seat_available > 0);
+    // An 'Exact Match' is when the primary route components match the active filters
+    return matchesQ && matchesPick && matchesDest && (ride.seat_available > 0);
   }) || [];
 
   const otherRides = rides?.filter(ride => {
@@ -132,10 +148,10 @@ function RideDiscoveryContent() {
             </div>
             <input
               type="text"
-              placeholder="Search destination..."
+              placeholder="Search route or landmark..."
               className="w-full pl-[4.5rem] pr-6 py-6 bg-surface rounded-[2rem] border border-divider shadow-sm outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all font-black text-textPrimary placeholder:font-bold placeholder:text-textSecondary/40 text-sm tracking-tight"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
           <button 

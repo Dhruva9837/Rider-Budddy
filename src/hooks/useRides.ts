@@ -48,16 +48,10 @@ export function useRides() {
           .order('departure_time', { ascending: true });
         
         if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          // Fallback to beautiful mock rides if table is empty
-          return generateMockRides();
-        }
-        
-        return data;
+        return data || [];
       } catch (err) {
-        console.warn('Failed to fetch rides from supabase, using mock data', err);
-        return generateMockRides();
+        console.error('Failed to fetch rides from supabase', err);
+        return [];
       }
     },
   });
@@ -205,52 +199,3 @@ export function useRides() {
   };
 }
 
-// Helper to generate mock data if DB is empty
-function generateMockRides() {
-  const now = new Date();
-  
-  return [
-    {
-      id: 'mock-1',
-      pickup_location: 'Main Gate',
-      destination: 'Library',
-      departure_time: new Date(now.getTime() + 15 * 60000).toISOString(), // 15 mins from now
-      seat_available: 2,
-      price: 15,
-      vehicle_type: 'bike',
-      status: 'open',
-      driver: { full_name: 'Aarav Gupta' },
-      trust_score: 98,
-      efficiency_score: 1.5,
-      driver_id: 'mock-user-1'
-    },
-    {
-      id: 'mock-2',
-      pickup_location: 'Hostel Block B',
-      destination: 'Tech Park',
-      departure_time: new Date(now.getTime() + 45 * 60000).toISOString(), // 45 mins from now
-      seat_available: 1,
-      price: 20,
-      vehicle_type: 'scooter',
-      status: 'open',
-      driver: { full_name: 'Priya Sharma' },
-      trust_score: 95,
-      efficiency_score: 1.2,
-      driver_id: 'mock-user-2'
-    },
-    {
-      id: 'mock-3',
-      pickup_location: 'Cafeteria',
-      destination: 'Management Block',
-      departure_time: new Date(now.getTime() + 120 * 60000).toISOString(), // 2 hrs from now
-      seat_available: 3,
-      price: 10,
-      vehicle_type: 'car',
-      status: 'open',
-      driver: { full_name: 'Rahul Verma' },
-      trust_score: 100,
-      efficiency_score: 2.5,
-      driver_id: 'mock-user-3'
-    },
-  ];
-}
