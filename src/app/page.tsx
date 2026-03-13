@@ -22,6 +22,43 @@ export default function Home() {
   const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
   const [hasVehicle, setHasVehicle] = useState<boolean | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const useCurrentLocation = () => {
+    setLocationError(null);
+    setLocating(true);
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported');
+      setLocating(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const addr = data.address;
+          const displayName = data.display_name || 
+            [addr?.road, addr?.suburb || addr?.neighbourhood, addr?.city || addr?.town].filter(Boolean).join(', ') ||
+            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          setPickup(displayName);
+        } catch {
+          setPickup(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        }
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError(err.message === 'User denied Geolocation' ? 'Location access denied' : 'Could not get location');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   useEffect(() => {
     if (user) {
@@ -77,11 +114,23 @@ export default function Home() {
                     <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
                     <input 
                       type="text" 
-                      placeholder="Enter pickup point"
-                      className="w-full pl-14 pr-6 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-black text-textPrimary placeholder:text-textSecondary/30 text-sm"
+                      placeholder="Enter pickup point or use current location"
+                      className="w-full pl-14 pr-14 py-5 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-black text-textPrimary placeholder:text-textSecondary/30 text-sm"
                       value={pickup}
-                      onChange={(e) => setPickup(e.target.value)}
+                      onChange={(e) => { setPickup(e.target.value); setLocationError(null); }}
                     />
+                    <button
+                      type="button"
+                      onClick={useCurrentLocation}
+                      disabled={locating}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-accent/10 text-accent hover:bg-accent/20 disabled:opacity-50 transition-all"
+                      title="Use current location"
+                    >
+                      <Navigation className="w-5 h-5" />
+                    </button>
+                    {locationError && (
+                      <p className="absolute -bottom-5 left-0 text-[10px] text-error font-bold">{locationError}</p>
+                    )}
                   </div>
 
                   {/* Vertical Line Connector */}
