@@ -11,11 +11,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useRides } from '@/hooks/useRides';
 import { useEffect } from 'react';
+import RideCard from '@/components/rides/RideCard';
 
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
+  const { rides, isLoading } = useRides();
   const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
   const [hasVehicle, setHasVehicle] = useState<boolean | null>(null);
@@ -218,45 +221,33 @@ export default function Home() {
           <div className="space-y-4 relative z-10">
             <div className="flex items-center gap-3 mb-6">
               <span className="px-5 py-2.5 bg-surface-elevated text-textPrimary rounded-full text-[10px] font-black uppercase tracking-widest border border-divider">Live 2-Wheeler Rides</span>
-              <span className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-full text-[9px] font-black uppercase tracking-widest border border-accent/20"><Bike className="w-3 h-3"/>Only</span>
+              <span className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-full text-[9px] font-black uppercase tracking-widest border border-accent/20 flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                Realtime
+              </span>
             </div>
 
-            <div className="bg-surface-elevated p-6 rounded-[2rem] border border-divider flex items-center justify-between hover:border-accent/30 transition-colors">
-              <div className="flex items-center gap-5">
-                 <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center pointer-events-none">
-                   <MapPin className="w-5 h-5 text-accent" />
-                 </div>
-                 <div>
-                   <p className="text-sm font-black text-textPrimary tracking-tight">Saharanpur → Gangoh</p>
-                   <p className="text-[10px] text-textSecondary uppercase tracking-widest font-bold mt-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3" /> Today, 2:30 PM • 1 Seat
-                    </p>
-                    <p className="text-[9px] text-accent font-black uppercase tracking-widest mt-1 flex items-center gap-1"><Bike className="w-3 h-3"/>Scooter</p>
+            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {isLoading ? (
+                <div className="space-y-4 animate-pulse">
+                  {[1, 2].map(i => (
+                    <div key={i} className="h-32 bg-surface-elevated rounded-[2rem] border border-divider" />
+                  ))}
+                </div>
+              ) : rides && rides.length > 0 ? (
+                rides.slice(0, 3).map((ride: any) => (
+                  <div key={ride.id} className="transform scale-[0.9] origin-left -mb-4">
+                     <RideCard 
+                      ride={ride} 
+                      onClick={() => router.push(`/rides/${ride.id}`)}
+                    />
                   </div>
-               </div>
-               <div className="text-right">
-                 <p className="text-lg font-black text-accent">₹30</p>
-                 <div className="text-[10px] font-black uppercase bg-accent/10 text-accent px-4 py-2 rounded-xl mt-2 tracking-widest cursor-default">Join</div>
-               </div>
-            </div>
-
-            <div className="bg-surface-elevated/50 p-6 rounded-[2rem] border border-divider flex items-center justify-between opacity-70 hover:opacity-100 hover:border-accent/30 transition-all">
-              <div className="flex items-center gap-5">
-                 <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center pointer-events-none">
-                   <MapPin className="w-5 h-5 text-accent" />
-                 </div>
-                 <div>
-                   <p className="text-sm font-black text-textPrimary tracking-tight">Gangoh → Saharanpur</p>
-                   <p className="text-[10px] text-textSecondary uppercase tracking-widest font-bold mt-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3" /> Today, 4:00 PM • 1 Seat
-                    </p>
-                    <p className="text-[9px] text-accent font-black uppercase tracking-widest mt-1 flex items-center gap-1"><Bike className="w-3 h-3"/>Bike</p>
-                  </div>
-               </div>
-               <div className="text-right">
-                 <p className="text-lg font-black text-accent">₹15</p>
-                 <div className="text-[10px] font-black uppercase bg-accent/10 text-accent px-4 py-2 rounded-xl mt-2 tracking-widest cursor-default">Join</div>
-               </div>
+                ))
+              ) : (
+                <div className="text-center py-10 opacity-50">
+                  <p className="text-xs font-black uppercase tracking-widest">No live rides at the moment</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

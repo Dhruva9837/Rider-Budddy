@@ -24,22 +24,44 @@ function RideDiscoveryContent() {
     }
   }, [searchParams]);
 
-  const filteredRides = rides?.filter(ride => {
-    const searchLower = searchTerm.toLowerCase();
-    
-    // If searchTerm matches the initial URL exactly, we can try to filter by both
+  const [showNewRideToast, setShowNewRideToast] = useState(false);
+  const [prevRideCount, setPrevRideCount] = useState(0);
+
+  useEffect(() => {
+    if (rides && rides.length > prevRideCount) {
+      if (prevRideCount !== 0) {
+        setShowNewRideToast(true);
+        setTimeout(() => setShowNewRideToast(false), 5000);
+      }
+      setPrevRideCount(rides.length);
+    }
+  }, [rides, prevRideCount]);
+
+  const exactMatches = rides?.filter(ride => {
     const urlPick = searchParams.get('pickup')?.toLowerCase() || '';
     const urlDest = searchParams.get('destination')?.toLowerCase() || '';
     
-    if (searchTerm === (searchParams.get('destination') || searchParams.get('pickup') || '')) {
-      const matchPick = urlPick ? (ride.pickup_landmark?.name?.toLowerCase().includes(urlPick) ?? false) : true;
-      const matchDest = urlDest ? (ride.destination_landmark?.name?.toLowerCase().includes(urlDest) ?? false) : true;
-      if (urlPick || urlDest) return matchPick && matchDest;
-    }
+    if (!urlPick && !urlDest) return false;
 
-    return (ride.pickup_landmark?.name?.toLowerCase().includes(searchLower) ?? false) ||
-           (ride.destination_landmark?.name?.toLowerCase().includes(searchLower) ?? false);
-  });
+    const routePickMatch = urlPick ? (ride.pickup_landmark?.name?.toLowerCase().includes(urlPick) || ride.pickup_location?.toLowerCase().includes(urlPick)) : true;
+    const routeDestMatch = urlDest ? (ride.destination_landmark?.name?.toLowerCase().includes(urlDest) || ride.destination?.toLowerCase().includes(urlDest)) : true;
+    
+    return routePickMatch && routeDestMatch && (ride.seat_available > 0);
+  }) || [];
+
+  const otherRides = rides?.filter(ride => {
+    const searchLower = searchTerm.toLowerCase();
+    const isExact = exactMatches.some(m => m.id === ride.id);
+    if (isExact) return false;
+
+    const matchesSearch = !searchTerm || 
+                         (ride.pickup_landmark?.name?.toLowerCase().includes(searchLower) ?? false) ||
+                         (ride.destination_landmark?.name?.toLowerCase().includes(searchLower) ?? false) ||
+                         (ride.pickup_location?.toLowerCase().includes(searchLower) ?? false) ||
+                         (ride.destination?.toLowerCase().includes(searchLower) ?? false);
+
+    return matchesSearch && (ride.seat_available > 0);
+  }) || [];
 
   return (
     <div className="min-h-screen pb-24 bg-primary overflow-x-hidden">
@@ -103,12 +125,22 @@ function RideDiscoveryContent() {
         </div>
 
         {/* Results Info */}
-        {!isLoading && filteredRides && (
+        {!isLoading && (exactMatches.length > 0 || otherRides.length > 0) && (
           <div className="flex items-center justify-between px-2">
             <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">
-              Available Shifts • {filteredRides.length}
+              Available Shifts • {exactMatches.length + otherRides.length}
             </p>
             <div className="h-[1px] flex-1 bg-divider/30 mx-4" />
+          </div>
+        )}
+
+        {/* Real-time Toast */}
+        {showNewRideToast && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-10 duration-500">
+            <div className="bg-success text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20">
+              <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <span className="text-[10px] font-black uppercase tracking-widest">New Ride Posted!</span>
+            </div>
           </div>
         )}
 
@@ -119,7 +151,7 @@ function RideDiscoveryContent() {
               <div key={i} className="h-48 glass-card animate-pulse shadow-sm" />
             ))}
           </div>
-        ) : filteredRides?.length === 0 ? (
+        ) : (exactMatches.length === 0 && otherRides.length === 0) ? (
           <div className="text-center py-20 glass-card shadow-sm mt-10">
             <div className="w-20 h-20 bg-surface-elevated rounded-full flex items-center justify-center mb-6 mx-auto text-textSecondary/20 border border-divider">
                <Navigation className="w-10 h-10" />
@@ -136,15 +168,52 @@ function RideDiscoveryContent() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5">
-            {filteredRides?.map((ride, index) => (
-              <RideCard 
-                key={ride.id} 
-                ride={ride} 
-                isRecommended={index === 0 && !searchTerm} // Recommend first if not searching
-                onClick={() => router.push(`/rides/${ride.id}`)} 
-              />
-            ))}
+          <div className="space-y-8">
+            {/* Exact Matches Section */}
+            {exactMatches.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-2">
+                  <div className="p-1.5 bg-accent/10 rounded-lg">
+                    <Navigation className="w-3 h-3 text-accent" />
+                  </div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Exact Matches</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-5">
+                  {exactMatches.map((ride, index) => (
+                    <RideCard 
+                      key={ride.id} 
+                      ride={ride} 
+                      isRecommended={index === 0}
+                      onClick={() => router.push(`/rides/${ride.id}`)} 
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Suggestions Section */}
+            {otherRides.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-2">
+                  <div className="p-1.5 bg-info/10 rounded-lg">
+                    <Sparkles className="w-3 h-3 text-info" />
+                  </div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-info">
+                    {exactMatches.length > 0 ? 'Other Suggested Routes' : 'Recommended Rides'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 gap-5">
+                  {otherRides.map((ride, index) => (
+                    <RideCard 
+                      key={ride.id} 
+                      ride={ride} 
+                      isRecommended={exactMatches.length === 0 && index === 0}
+                      onClick={() => router.push(`/rides/${ride.id}`)} 
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -9,19 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#1A1A2E",
-        accent: "#E94560",
-        surface: "#16213E",
-        surfaceElevated: "#0F3460",
+        primary: "#0D0D15",
+        accent: "#8B5CF6",
+        surface: "#151525",
+        surfaceElevated: "#1C1C35",
 
         textPrimary: "#FFFFFF",
-        textSecondary: "#B0BAD0",
-        divider: "#2A2A4A",
+        textSecondary: "#94A3B8",
+        divider: "#2D2D50",
 
         success: "#10B981",
         warning: "#F59E0B",
         error: "#EF4444",
-        info: "#3B82F6"
+        info: "#6366F1"
       },
 
       borderRadius: {

@@ -2,9 +2,33 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useEffect } from 'react';
 
 export function useRides() {
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('rides-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'rides'
+        },
+        () => {
+          // Invalidate rides query to fetch fresh data with relations
+          queryClient.invalidateQueries({ queryKey: ['rides'] });
+          queryClient.invalidateQueries({ queryKey: ['passenger_requests'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const ridesQuery = useQuery({
     queryKey: ['rides'],

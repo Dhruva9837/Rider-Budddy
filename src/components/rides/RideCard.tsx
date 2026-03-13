@@ -37,11 +37,17 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
         isRecommended ? 'ring-2 ring-accent shadow-accent/20' : ''
       }`}
     >
-      {isRecommended && (
+      {(isRecommended) && (
         <div className="absolute top-0 right-0 bg-accent text-white text-[10px] font-black px-3 py-1 rounded-bl-2xl uppercase tracking-widest z-10 shadow-lg">
           Recommended
         </div>
       )}
+
+      {/* Live Pulse Indicator for new rides (e.g., within 5 mins - using mocked check for demo) */}
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">
+        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+        <span className="text-[8px] font-black text-success uppercase tracking-[0.2em]">Live</span>
+      </div>
       
       <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
       
