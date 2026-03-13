@@ -25,14 +25,9 @@ export default function NotificationPanel() {
     // In a real app, we'd have a 'notifications' table.
     // For the hackathon MVP, we'll derive some from ride_requests.
     const fetchNotifications = async () => {
-      // Mock notifications for now to show the UI
-      const mockNotifs: Notification[] = [
-        { id: '1', message: 'Welcome to RideShare Campus! 🚲', type: 'info', created_at: new Date().toISOString(), read: false },
-        { id: '2', message: 'Your ride to Main Gate was accepted! ✅', type: 'success', created_at: new Date().toISOString(), read: false },
-        { id: '3', message: 'New request for your ride to Hostel A 👥', type: 'alert', created_at: new Date().toISOString(), read: true },
-      ];
-      setNotifications(mockNotifs);
-      setUnreadCount(mockNotifs.filter(n => !n.read).length);
+      // In a real app, we'd fetch from a notifications table
+      setNotifications([]);
+      setUnreadCount(0);
     };
 
     fetchNotifications();

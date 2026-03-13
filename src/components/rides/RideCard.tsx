@@ -64,9 +64,11 @@ export default function RideCard({ ride, onClick, isRecommended }: RideCardProps
           <div>
             <h4 className="font-bold text-textPrimary group-hover:text-accent transition-colors">{ride.driver.full_name}</h4>
             <div className="flex items-center gap-2 mt-0.5">
+              {/* 
               <span className="flex items-center gap-1 text-[10px] bg-warning/10 text-warning px-2 py-0.5 rounded-full font-bold border border-warning/20">
                 <Star className="w-3 h-3 fill-warning" /> 4.9
-              </span>
+              </span> 
+              */}
               <span className="flex items-center gap-1 text-[10px] bg-success/10 text-success px-2 py-0.5 rounded-full font-bold border border-success/20">
                 <ShieldCheck className="w-3 h-3" /> {trustScore}% Trust
               </span>

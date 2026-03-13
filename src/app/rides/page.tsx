@@ -83,11 +83,14 @@ function RideDiscoveryContent() {
     const isExact = exactMatches.some(m => m.id === ride.id);
     if (isExact) return false;
 
+    // If no search term, show everything as "Available"
+    if (!searchTerm) return true;
+
     const ridePick = ride.pickup_landmark?.name || ride.pickup_location || '';
     const rideDest = ride.destination_landmark?.name || ride.destination || '';
 
-    const matchesSearch = !searchTerm || 
-                         isFuzzyMatch(ridePick, searchLower) ||
+    // If searching, only show if it matches
+    const matchesSearch = isFuzzyMatch(ridePick, searchLower) ||
                          isFuzzyMatch(rideDest, searchLower);
 
     return matchesSearch && (ride.seat_available > 0);
@@ -239,7 +242,7 @@ function RideDiscoveryContent() {
                     <Sparkles className="w-3 h-3 text-info" />
                   </div>
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-info">
-                    {exactMatches.length > 0 ? 'Other Suggested Routes' : 'Recommended Rides'}
+                    {searchTerm ? (exactMatches.length > 0 ? 'Other Suggested Routes' : 'Recommended Rides') : 'All Available Rides'}
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 gap-5">
