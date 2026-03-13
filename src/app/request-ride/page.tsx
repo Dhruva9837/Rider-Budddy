@@ -120,7 +120,7 @@ export default function RequestRide() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Routes Section */}
-          <div className="glass-card p-8 shadow-lg border-divider space-y-6 relative group overflow-hidden">
+          <div className="glass-card p-8 shadow-lg border-divider space-y-6 relative group overflow-visible">
             <div className="absolute top-0 right-0 w-24 h-24 bg-info/5 rounded-bl-full pointer-events-none" />
             
             <div className="relative">
@@ -151,7 +151,7 @@ export default function RequestRide() {
                 )}
               </div>
               {showStartSugg && (
-                <div className="absolute z-50 left-0 right-0 mt-2 bg-surface-elevated shadow-2xl border border-divider overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 rounded-xl">
+                <div className="absolute z-[100] left-0 right-0 mt-2 bg-[#1C1C35] text-white shadow-2xl border border-[#2D2D50] max-h-48 overflow-y-auto rounded-xl">
                   {landmarks?.filter(l => l.name.toLowerCase().includes(pickupSearch.toLowerCase())).map(land => (
                     <button 
                       key={land.id}
@@ -160,7 +160,7 @@ export default function RequestRide() {
                         setFormData({...formData, pickup_landmark_id: land.id});
                         setPickupSearch(land.name);
                       }}
-                      className="w-full text-left px-5 py-4 hover:bg-info/20 text-xs font-bold text-textPrimary border-b border-divider/10 last:border-0 transition-colors uppercase tracking-widest"
+                      className="w-full text-left px-5 py-4 hover:bg-info/20 text-xs font-bold text-white border-b border-[#2D2D50]/50 last:border-0 transition-colors uppercase tracking-widest"
                     >
                       {land.name}
                     </button>
@@ -185,7 +185,7 @@ export default function RequestRide() {
                 />
               </div>
               {showDestSugg && (
-                <div className="absolute z-50 left-0 right-0 mt-2 bg-surface-elevated shadow-2xl border border-divider overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 rounded-xl">
+                <div className="absolute z-[100] left-0 right-0 mt-2 bg-[#1C1C35] text-white shadow-2xl border border-[#2D2D50] max-h-48 overflow-y-auto rounded-xl">
                   {landmarks?.filter(l => l.name.toLowerCase().includes(destSearch.toLowerCase())).map(land => (
                     <button 
                       key={land.id}
@@ -194,7 +194,7 @@ export default function RequestRide() {
                         setFormData({...formData, destination_landmark_id: land.id});
                         setDestSearch(land.name);
                       }}
-                      className="w-full text-left px-5 py-4 hover:bg-info/20 text-xs font-bold text-textPrimary border-b border-divider/10 last:border-0 transition-colors uppercase tracking-widest"
+                      className="w-full text-left px-5 py-4 hover:bg-info/20 text-xs font-bold text-white border-b border-[#2D2D50]/50 last:border-0 transition-colors uppercase tracking-widest"
                     >
                       {land.name}
                     </button>
