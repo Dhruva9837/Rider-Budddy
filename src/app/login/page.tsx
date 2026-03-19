@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,62 +30,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary p-6 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="w-full max-w-md glass-card p-10 shadow-2xl border-divider animate-in zoom-in-95 duration-500 relative z-10">
-        <div className="mb-10">
-          <h1 className="text-4xl font-black text-textPrimary tracking-tighter mb-2 uppercase">System Entry</h1>
-          <p className="text-textSecondary text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Authorize your campus credentials</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-primary px-6 py-12">
+      <div className="w-full max-w-sm">
+        {/* Brand */}
+        <div className="text-center mb-12">
+          <h1 className="text-2xl font-semibold text-textPrimary tracking-tight">RideBuddy</h1>
+          <p className="text-textSecondary text-sm mt-1">Sign in to continue</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-8">
-          <div className="space-y-2">
-            <label className="text-[9px] font-black text-textSecondary uppercase tracking-[0.2em] mb-1.5 block ml-1">Secure Vector (Email)</label>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-5 py-4 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-black text-textPrimary placeholder:text-textSecondary/30 text-sm"
-              placeholder="operator@campus.edu"
+              className="w-full px-4 py-3.5 bg-surface rounded-xl border border-divider/80 focus:border-accent/50 focus:ring-1 focus:ring-accent/20 outline-none transition-all text-textPrimary placeholder:text-textSecondary/40 text-sm"
+              placeholder="Email"
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[9px] font-black text-textSecondary uppercase tracking-[0.2em] mb-1.5 block ml-1">Access Cipher (Password)</label>
+          <div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-4 bg-surface-elevated rounded-2xl border border-divider focus:ring-2 focus:ring-accent/30 focus:border-accent/40 outline-none transition-all font-black text-textPrimary placeholder:text-textSecondary/30 text-sm"
-              placeholder="••••••••"
+              className="w-full px-4 py-3.5 bg-surface rounded-xl border border-divider/80 focus:border-accent/50 focus:ring-1 focus:ring-accent/20 outline-none transition-all text-textPrimary placeholder:text-textSecondary/40 text-sm"
+              placeholder="Password"
               required
             />
           </div>
 
           {error && (
-            <div className="p-4 bg-accent/5 border border-accent/20 rounded-xl animate-in fade-in slide-in-from-top-1">
-              <p className="text-accent text-[10px] font-black uppercase tracking-widest leading-relaxed">{error}</p>
-            </div>
+            <p className="text-red-400 text-sm">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-6 flex items-center justify-center gap-4 group transition-all active:scale-95 disabled:grayscale disabled:opacity-30 shadow-xl shadow-accent/20"
+            className="w-full py-3.5 bg-accent text-white rounded-xl font-medium text-sm hover:bg-accent/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="text-xs uppercase font-black tracking-[0.5em] group-hover:tracking-[0.6em] transition-all">
-              {loading ? 'Authorizing...' : 'Establish Link'}
-            </span>
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
-        <p className="mt-10 text-center text-textSecondary text-[10px] font-black uppercase tracking-[0.2em]">
-          New Operator?{' '}
-          <Link href="/signup" className="text-accent hover:text-white transition-colors ml-2 border-b border-accent/30 pb-0.5">
-            Register Segment
+        <p className="mt-8 text-center text-textSecondary text-sm">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="text-accent hover:underline">
+            Sign up
           </Link>
         </p>
       </div>
